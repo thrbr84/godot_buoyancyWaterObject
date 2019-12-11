@@ -27,11 +27,20 @@ func _input(event):
 			for b in get_tree().get_nodes_in_group(\"ball\"):
 				b.queue_free()
 			total = 0
+			
+			$boat.floating = false
+			$boat.linear_velocity = Vector2.ZERO
+			$boat.rotate(0)
 			$anim.stop(true)
 			$anim.play(\"init\")
+			
+			yield(get_tree().create_timer(.5), \"timeout\")
+			$boat.global_position = Vector2(381,$water.global_position.y)
+			
 			$Timer.start()
 			
-			
+			yield(get_tree().create_timer(.5), \"timeout\")
+			$boat.floating = true
 			
 "
 
@@ -199,5 +208,6 @@ autostart = true
 [node name="boat" parent="." instance=ExtResource( 2 )]
 position = Vector2( 381.16, 487.048 )
 mass = 10.0
+gravity_scale = 5.0
 [connection signal="body_entered" from="water" to="." method="_on_water_body_entered"]
 [connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]
