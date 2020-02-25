@@ -33,19 +33,12 @@ var water
 var area
 var _col
 
-var timer_box = Timer.new()
-
 func _ready():
 	randomizator.randomize()
 	if Engine.is_editor_hint() == false:
 		create_water_block()
 	set_process(true)
 	#self.z_index = 4096
-	
-	#timer_box.wait_time = 1
-	#timer_box.autostart = true
-	#timer_box.connect("timeout", self, "_on_timer_box_timeout")
-	#add_child(timer_box)
 	
 	timer_queuefree_droplets.wait_time = 1
 	timer_queuefree_droplets.autostart = true
@@ -100,19 +93,9 @@ func _dynamic_physics():
 				vecs_positions[i + 1].y += right_vec[i]
 		
 func create_water_block():
-	refreshing = true
-	var water_block
-	var area
-	var col
-	
-	if !weakref(water).get_ref() and !initialized:
-		water_block = Polygon2D.new()
-		area = Area2D.new()
-		col = CollisionPolygon2D.new()
-	else:
-		water_block = $"./water_base"
-		area = $"./water_base/water_area"
-		col = $"./water_base/water_area/water_col"
+	var water_block = Polygon2D.new()
+	var area = Area2D.new()
+	var col = CollisionPolygon2D.new()
 	
 	var distance_beetween_vecs = LARGURA / RESOLUCAO
 	var vecs = PoolVector2Array([])
@@ -124,9 +107,7 @@ func create_water_block():
 	vecs.insert(RESOLUCAO + 1, Vector2(LARGURA, 0))
 	vecs.insert(RESOLUCAO + 2, Vector2(0, 0))
 	
-	if !initialized:
-		water_block.name = "water_base"
-	
+	water_block.name = "water_base"
 	water_block.polygon = []
 	water_block.polygon = vecs
 	water_block.color = COR
@@ -134,19 +115,19 @@ func create_water_block():
 	col.polygon = []
 	col.polygon = water_block.polygon
 	
-	if !initialized:
-		if simulate_water:
-			var new_material = ShaderMaterial.new()
-			new_material.shader = water_shader
-			new_material.set_shader_param("blue_tint", COR)
-			new_material.set_shader_param("sprite_scale", Vector2(1,1))
-			new_material.set_shader_param("scale_x", water_distorcion)
-			water_block.material = new_material
+
+	if simulate_water:
+		var new_material = ShaderMaterial.new()
+		new_material.shader = water_shader
+		new_material.set_shader_param("blue_tint", COR)
+		new_material.set_shader_param("sprite_scale", Vector2(1,1))
+		new_material.set_shader_param("scale_x", water_distorcion)
+		water_block.material = new_material
 
 		if water_texture != null:
 			water_block.texture = water_texture
 	
-	if !initialized:
+
 		water_block.antialiased = true
 		area.name = "water_area"
 		area.add_to_group("water_area")
@@ -168,13 +149,11 @@ func create_water_block():
 	
 	water = $"./water_base"
 	_col = $"./water_base/water_area/water_col"
-	initialized = true
-	refreshing = false
 
 func body_emerged(body):
 	if (body is RigidBody2D) or (body is KinematicBody2D) or (body is StaticBody2D):
 		
-		var force_applied = 11 * 0.01
+		var force_applied = 11 * 0.5
 		if body is RigidBody2D:
 			force_applied = body.linear_velocity.y * 0.01
 		
@@ -198,7 +177,7 @@ func body_emerged(body):
 			if audio_splash:
 				var audioSplash = AudioStreamPlayer.new()
 				audioSplash.stream = audio_splash
-				audioSplash.volume_db = randomizator.randf_range(-50,0)
+				audioSplash.volume_db = randomizator.randf_range(-50,-10)
 				audioSplash.connect("finished", self, "_on_audoSplashFinished", [audioSplash])
 				add_child(audioSplash)
 				audioSplash.play()
@@ -246,3 +225,4 @@ func _draw():
 func _on_audoSplashFinished(body):
 	if weakref(body).get_ref():
 		body.queue_free()
+
