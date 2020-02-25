@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://assets/blank.png" type="Texture" id=1]
 [ext_resource path="res://boat.tscn" type="PackedScene" id=2]
+[ext_resource path="res://addons/polygon2dwater/polygon2dwater.gd" type="Script" id=3]
 
 [sub_resource type="GDScript" id=1]
 script/source = "extends Node2D
@@ -42,120 +43,40 @@ func _input(event):
 			yield(get_tree().create_timer(.5), \"timeout\")
 			$boat.floating = true
 			
+
+
+func _on_water_body_entered(body):
+	pass # Replace with function body.
 "
-
-[sub_resource type="Shader" id=2]
-code = "shader_type canvas_item;
-
-uniform vec4 blue_tint : hint_color;
-uniform vec2 sprite_scale;
-uniform float scale_x = 0.67;
-
-float rand(vec2 coord){
-	return fract(sin(dot(coord, vec2(12.9898, 78.233)))* 43758.5453123);
-}
-
-float noise(vec2 coord){
-	vec2 i = floor(coord);
-	vec2 f = fract(coord);
-
-	// 4 corners of a rectangle surrounding our point
-	float a = rand(i);
-	float b = rand(i + vec2(1.0, 0.0));
-	float c = rand(i + vec2(0.0, 1.0));
-	float d = rand(i + vec2(1.0, 1.0));
-
-	vec2 cubic = f * f * (3.0 - 2.0 * f);
-
-	return mix(a, b, cubic.x) + (c - a) * cubic.y * (1.0 - cubic.x) + (d - b) * cubic.x * cubic.y;
-}
-
-void fragment(){
-	
-	vec2 noisecoord1 = UV * sprite_scale * scale_x;
-	vec2 noisecoord2 = UV * sprite_scale * scale_x + 4.0;
-	
-	vec2 motion1 = vec2(TIME * 0.3, TIME * -0.4);
-	vec2 motion2 = vec2(TIME * 0.1, TIME * 0.5);
-	
-	vec2 distort1 = vec2(noise(noisecoord1 + motion1), noise(noisecoord2 + motion1)) - vec2(0.5);
-	vec2 distort2 = vec2(noise(noisecoord1 + motion2), noise(noisecoord2 + motion2)) - vec2(0.5);
-	
-	vec2 distort_sum = (distort1 + distort2) / 60.0;
-	
-	vec4 color = textureLod(SCREEN_TEXTURE, SCREEN_UV + distort_sum, 0.0);
-	
-	color = mix(color, blue_tint, 0.3);
-	color.rgb = mix(vec3(0.5), color.rgb, 1.4);
-	
-	float near_top = (UV.y + distort_sum.y) / (0.2 / sprite_scale.y);
-	near_top = clamp(near_top, 0.0, 1.0);
-	near_top = 1.0 - near_top;
-	
-	color = mix(color, vec4(1.0), near_top);
-	
-	float edge_lower = 0.6;
-	float edge_upper = edge_lower + 0.1;
-	
-	if(near_top > edge_lower){
-		color.a = 0.0;
-		
-		if(near_top < edge_upper){
-			color.a = (edge_upper - near_top) / (edge_upper - edge_lower);
-		}
-	}
-	
-	COLOR = color;
-}"
-
-[sub_resource type="ShaderMaterial" id=3]
-shader = SubResource( 2 )
-shader_param/blue_tint = Color( 0.211765, 0.698039, 0.811765, 0.423529 )
-shader_param/sprite_scale = Vector2( 3, 4 )
-shader_param/scale_x = 5.0
-
-[sub_resource type="RectangleShape2D" id=4]
-extents = Vector2( 627.364, 434.001 )
 
 [sub_resource type="Animation" id=5]
 length = 20.0
 loop = true
 tracks/0/type = "value"
-tracks/0/path = NodePath("water:position")
+tracks/0/path = NodePath("Polygon2Dwater:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 5, 10 ),
+"times": PoolRealArray( 0, 5.1, 10 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 0,
-"values": [ Vector2( 0, 500 ), Vector2( 0, 590 ), Vector2( 0, 120 ) ]
+"values": [ Vector2( -0.000244141, 1207.64 ), Vector2( -0.000244141, 1207.64 ), Vector2( -0.000244141, 799.641 ) ]
 }
 
 [node name="main" type="Node2D"]
 script = SubResource( 1 )
 
-[node name="water" type="Area2D" parent="." groups=[
-"water",
-]]
-position = Vector2( 0, 500 )
-z_index = 1
-
-[node name="icon" type="TextureRect" parent="water"]
-material = SubResource( 3 )
-margin_top = -20.0
-margin_right = 1293.0
-margin_bottom = 905.0
-texture = ExtResource( 1 )
-expand = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="collision" type="CollisionShape2D" parent="water"]
-position = Vector2( 641.308, 429.852 )
-shape = SubResource( 4 )
+[node name="Polygon2Dwater" type="Node2D" parent="."]
+position = Vector2( -0.000244141, 1207.64 )
+z_index = 2
+script = ExtResource( 3 )
+COR = Color( 0.0862745, 0.431373, 0.760784, 1 )
+ALTURA = 720.0
+LARGURA = 1280.0
+RESOLUCAO = 10.0
+TENSAO = 0.07
 
 [node name="piso_seco" type="StaticBody2D" parent="."]
 position = Vector2( -46.59, 507.83 )
@@ -200,14 +121,18 @@ autoplay = "init"
 anims/init = SubResource( 5 )
 
 [node name="Position2D" type="Position2D" parent="."]
-position = Vector2( 339.142, -55.448 )
+position = Vector2( 373.142, -30.721 )
 
 [node name="Timer" type="Timer" parent="."]
 autostart = true
 
 [node name="boat" parent="." instance=ExtResource( 2 )]
-position = Vector2( 381.16, 487.048 )
+position = Vector2( 146.254, 388.14 )
 mass = 10.0
 gravity_scale = 5.0
-[connection signal="body_entered" from="water" to="." method="_on_water_body_entered"]
+
+[node name="boat2" parent="." instance=ExtResource( 2 )]
+position = Vector2( 393.524, 456.139 )
+mass = 10.0
+gravity_scale = 5.0
 [connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]
