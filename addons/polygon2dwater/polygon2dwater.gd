@@ -104,16 +104,13 @@ func create_water_block():
 	var col
 	
 	if !weakref(water).get_ref() and !initialized:
-		prints('inicializando')
 		water_block = Polygon2D.new()
 		area = Area2D.new()
 		col = CollisionPolygon2D.new()
 	else:
-		prints('refresh')
 		water_block = $"./water_base"
 		area = $"./water_base/water_area"
 		col = $"./water_base/water_area/water_col"
-	
 	
 	var distance_beetween_vecs = LARGURA / RESOLUCAO
 	var vecs = PoolVector2Array([])
