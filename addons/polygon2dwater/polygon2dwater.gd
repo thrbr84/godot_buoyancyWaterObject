@@ -2,6 +2,8 @@ tool
 extends Node2D
 
 export (Color) var COR = Color(1.0, 1.0, 1.0, 1.0)
+export (float, 0, 1) var particles_alpha = .5
+export (AudioStream) var audio_splash = preload("res://addons/polygon2dwater/splash.ogg")
 export (float) var ALTURA = 0
 export (float) var LARGURA = 0
 export (float) var RESOLUCAO = 15
@@ -172,7 +174,7 @@ func create_water_block():
 func body_emerged(body):
 	if (body is RigidBody2D) or (body is KinematicBody2D) or (body is StaticBody2D):
 		
-		var force_applied = 11
+		var force_applied = 11 * 0.01
 		if body is RigidBody2D:
 			force_applied = body.linear_velocity.y * 0.01
 		
@@ -192,6 +194,15 @@ func body_emerged(body):
 			body._on_water_entered(water, ALTURA, TENSAO, AMORTECIMENTO)
 		
 		if emit_particles:
+			
+			if audio_splash:
+				var audioSplash = AudioStreamPlayer.new()
+				audioSplash.stream = audio_splash
+				audioSplash.volume_db = randomizator.randf_range(-50,0)
+				audioSplash.connect("finished", self, "_on_audoSplashFinished", [audioSplash])
+				add_child(audioSplash)
+				audioSplash.play()
+				
 			var droplets = water_particles.instance()
 			droplets.name = "particles"
 			droplets.amount = (randomizator.randi() % 30) + 5
@@ -204,15 +215,19 @@ func body_emerged(body):
 			droplets.add_to_group("water_droplets")
 			
 			var gradientRamp = Gradient.new()
+			var corStart = COR
 			var corEnd = COR
+			corStart.a = particles_alpha
 			corEnd.a = 0
-			gradientRamp.add_point(0, COR)
+			
+			gradientRamp.add_point(0, corStart)
 			gradientRamp.add_point(1, corEnd)
 			
 			droplets.color_ramp = gradientRamp
 			droplets.z_index = body.z_index - 1
 			droplets.global_position = Vector2(body.global_position.x, body.global_position.y)
-			$"..".add_child(droplets)
+			droplets.set_as_toplevel(true)
+			add_child(droplets)
 			droplets.emitting = true
 
 func body_not_emerged(body):
@@ -227,3 +242,7 @@ func _draw():
 		vecs = PoolVector2Array([Vector2(0, -ALTURA), Vector2(LARGURA, -ALTURA), Vector2(LARGURA, 0), Vector2(0, 0)])
 		color = PoolColorArray([COR, COR, COR, COR])
 	draw_polygon(vecs, color)
+
+func _on_audoSplashFinished(body):
+	if weakref(body).get_ref():
+		body.queue_free()
