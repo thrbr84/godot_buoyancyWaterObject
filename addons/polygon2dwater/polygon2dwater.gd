@@ -56,7 +56,7 @@ func _on_timer_droplets_timeout():
 			d.queue_free()
 		break
 
-func _process(delta):
+func _physics_process(delta):
 	if refreshing: return
 	if Engine.is_editor_hint() == false:
 		_dynamic_physics()
