@@ -29,7 +29,7 @@ func _on_water_entered(_water, _altura, _tensao, _amortecimento):
 
 "
 
-[sub_resource type="CapsuleShape2D" id=4]
+[sub_resource type="CapsuleShape2D" id=3]
 radius = 32.0536
 height = 2.53595
 
@@ -44,4 +44,4 @@ scale = Vector2( 0.0437413, 0.0437413 )
 texture = ExtResource( 1 )
 
 [node name="collision" type="CollisionShape2D" parent="."]
-shape = SubResource( 4 )
+shape = SubResource( 3 )
